@@ -74,7 +74,7 @@ Yes, you can delete all Performance logs.
 ## Changelog
 
 ### 1.0.0
-- nitial release with PHP execution time tracking, database query analysis, system resource monitoring, and IP address tracking for optimized performance and security.
+- Initial release with PHP execution time tracking, database query analysis, system resource monitoring, and IP address tracking for optimized performance and security.
 
 ## Upgrade Notice
 ### 1.0.0 
