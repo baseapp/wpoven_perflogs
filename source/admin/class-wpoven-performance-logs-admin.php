@@ -611,7 +611,7 @@ class Wpoven_Performance_Logs_Admin
 
 	function wpoven_purge_all_logs()
 	{
-		check_ajax_referer('ajax_nonce', 'nonce');
+		//check_ajax_referer('ajax_nonce', 'nonce');
 
 		global $wpdb;
 		$return_array = array();
