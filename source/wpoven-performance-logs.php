@@ -64,7 +64,7 @@ require_once plugin_dir_path(__FILE__) . 'includes/libraries/plugin-update-check
 use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
 $myUpdateChecker = PucFactory::buildUpdateChecker(
-	'https://github.com/baseapp/wpoven_perflogs.git',
+	'https://github.com/baseapp/wpoven_perflogs/',
 	__FILE__,
 	'wpoven-performance-logs'
 );
