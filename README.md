@@ -37,7 +37,7 @@ Monitor CPU load, memory usage and limit.
 1. **Download the Plugin:**
    - To get the latest version of WPOven Performance Logs, you can either:
      - [Visit WPOven's website](https://www.wpoven.com/plugins/wpoven-performance-logs) to learn more about the plugin.
-     - Download directly from the GitHub repository: [Download](https://github.com/baseapp/wpoven_perflogs/releases/download/1.0.0/wpoven-performance-logs-2024-11-12.zip).
+     - Download directly from the GitHub repository: [Download](https://github.com/baseapp/wpoven_perflogs/releases/download/1.0.1/wpoven-performance-logs-2025-12-26.zip).
 
 
 2. **Upload the Plugin:**
