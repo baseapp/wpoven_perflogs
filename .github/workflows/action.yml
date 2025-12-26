@@ -8,11 +8,11 @@ on:
       wp_version:
         description: "WordPress version to test against"
         required: true
-        default: "6.6.2"
+        default: "6.9"
       plugin_version:
         description: "Plugin version to release"
         required: true
-        default: "1.0.0"
+        default: "1.0.1"
 
 env:
   PLUGIN_SLUG: "wpoven-performance-logs"
@@ -157,7 +157,7 @@ jobs:
         id: versions
         run: |
           RELEASE_DATE=$(date +'%Y-%m-%d')
-          PLUGIN_VERSION="${{ github.event.inputs.plugin_version || '1.0.0' }}"
+          PLUGIN_VERSION="${{ github.event.inputs.plugin_version || '1.0.1' }}"
           ZIP_NAME="${{ env.PLUGIN_SLUG }}-${RELEASE_DATE}.zip"
 
           echo "release_date=$RELEASE_DATE" >> $GITHUB_OUTPUT
@@ -177,12 +177,12 @@ jobs:
 
       - name: Update README
         run: |
-          sed -i "s/\*\*Tested up to:\*\* [0-9.]*/**Tested up to:** ${{ github.event.inputs.wp_version || '6.6.2' }}/" README.md
+          sed -i "s/\*\*Tested up to:\*\* [0-9.]*/**Tested up to:** ${{ github.event.inputs.wp_version || '6.9' }}/" README.md
           sed -i "s/\*\*Stable tag:\*\* [0-9.]*/**Stable tag:** ${{ steps.versions.outputs.plugin_version }}/" README.md
           sed -i "s|/releases/download/[0-9.]*/wpoven-performance-logs-[0-9-]*.zip|/releases/download/${{ steps.versions.outputs.plugin_version }}/${{ steps.versions.outputs.zip_name }}|" README.md
 
           # Update README.txt
-          sed -i "s/Tested up to: [0-9.]*/Tested up to: ${{ github.event.inputs.wp_version || '6.6.2' }}/" README.txt
+          sed -i "s/Tested up to: [0-9.]*/Tested up to: ${{ github.event.inputs.wp_version || '6.9' }}/" README.txt
           sed -i "s/Stable tag: [0-9.]*/Stable tag: ${{ steps.versions.outputs.plugin_version }}/" README.txt
           sed -i "s|/releases/download/[0-9.]*/wpoven-performance-logs-[0-9-]*.zip|/releases/download/${{ steps.versions.outputs.plugin_version }}/${{ steps.versions.outputs.zip_name }}|" README.txt
 
@@ -196,7 +196,7 @@ jobs:
             🚀 WPOven Performance Logs Release v${{ steps.versions.outputs.plugin_version }}
 
             Release Date: ${{ steps.versions.outputs.release_date }}
-            Tested with WordPress: ${{ github.event.inputs.wp_version || '6.6.2' }}
+            Tested with WordPress: ${{ github.event.inputs.wp_version || '6.9' }}
           draft: false
           prerelease: false
         env:

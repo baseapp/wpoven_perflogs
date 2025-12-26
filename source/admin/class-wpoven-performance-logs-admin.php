@@ -177,6 +177,20 @@ class Wpoven_Performance_Logs_Admin
 			.wp-list-table .is-expanded .column-timestamp{
                  display: table-cell;
             }
+
+			.log-json-output {
+				background: #f7f7f7;
+				border: 1px solid #ddd;
+				padding: 12px;
+				border-radius: 6px;
+				font-size: 13px;
+				line-height: 1.4;
+				width: 100%;
+				max-height: 220px; /* define area height */
+				overflow: auto; /* scroll if large JSON */
+				white-space: pre-wrap; /* wrap long lines */
+			}
+
 		</style>';
 	}
 
@@ -228,10 +242,27 @@ class Wpoven_Performance_Logs_Admin
 						<div class="wp-list-cell">
 							<h4>URL</h4>
 						</div>
-						<div class="wp-list-cell">
+
+						<div class="wp-list-cell" style="margin-bottom: 10px;">
 							<span><?php echo esc_html($log['url']); ?></span>
 							<p>Status : <?php echo esc_html($log['status_code']); ?></p>
+							<p>Post Arguments :</p>
+							<div style="max-height: 300px; overflow: auto; border: 1px solid #ccc; padding: 10px; background: #f7f7f7;">
+								<pre style="white-space: pre-wrap; word-wrap: break-word;">
+<?php
+		$post_args = $log['post_arguments'];
+		if (is_string($post_args) && json_decode($post_args, true)) {
+			echo esc_html(json_encode(json_decode($post_args, true), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+		} elseif (is_array($post_args)) {
+			echo esc_html(print_r($post_args, true));
+		} else {
+			echo esc_html("No POST arguments logged.");
+		}
+?>
+        </pre>
+							</div>
 						</div>
+
 					</div>
 					<div class="wp-list-row">
 						<div class="wp-list-cell">
@@ -405,7 +436,7 @@ class Wpoven_Performance_Logs_Admin
 	}
 
 	public function get_latest_admin_bar_data()
-	{	
+	{
 		$return_array = array();
 
 		global $wpdb;
@@ -424,6 +455,39 @@ class Wpoven_Performance_Logs_Admin
 		}
 		$return_array['status'] = 'ok';
 		die(wp_json_encode($return_array));
+	}
+
+	/**
+	 * Sanitize and prepare POST arguments for storage
+	 */
+	private function sanitize_post_arguments($post_data)
+	{
+		$sanitized = array();
+
+		foreach ($post_data as $key => $value) {
+			// Skip sensitive data
+			$sensitive_keys = array('password', 'pwd', 'secret', 'token', 'credit_card', 'cc');
+			$is_sensitive = false;
+
+			foreach ($sensitive_keys as $sensitive_key) {
+				if (stripos($key, $sensitive_key) !== false) {
+					$is_sensitive = true;
+					break;
+				}
+			}
+
+			if ($is_sensitive) {
+				$sanitized[$key] = '[REDACTED]';
+			} else {
+				if (is_array($value)) {
+					$sanitized[$key] = $this->sanitize_post_arguments($value);
+				} else {
+					$sanitized[$key] = sanitize_text_field($value);
+				}
+			}
+		}
+
+		return wp_json_encode($sanitized);
 	}
 
 	/**
@@ -503,6 +567,13 @@ class Wpoven_Performance_Logs_Admin
 			$database_queries = null;
 		}
 
+		// Capture POST arguments
+		$post_arguments = null;
+		if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
+			$post_arguments = $this->sanitize_post_arguments($_POST);
+		}
+
+
 		// Prepare log data
 		$data = array(
 			'url'               => home_url() . $url,
@@ -517,8 +588,16 @@ class Wpoven_Performance_Logs_Admin
 			'memory_limit'      => $server_metrics['memory_limit'],
 			'memory_usage'      => $memory_usage,
 			'peak_memory_usage' => $server_metrics['peak_memory_usage'],
-			'cpu_load'          => $server_metrics['cpu_load']
+			'cpu_load'          => $server_metrics['cpu_load'],
+			'post_arguments'    => $post_arguments,
 		);
+
+		if (isset($options['query_slow_threshold']) && is_numeric($options['query_slow_threshold'])) {
+			$threshold_seconds = floatval($options['query_slow_threshold']);
+			if ($execution_time < $threshold_seconds) {
+				return; // Skip logging if execution time is below the threshold
+			}
+		}
 
 		// Store the log in the database
 		$this->store_data_in_database($data);
@@ -559,7 +638,8 @@ class Wpoven_Performance_Logs_Admin
 				'queries'           => $data['queries'],
 				'memory_usage'      => $data['memory_usage'],
 				'peak_memory_usage' => $data['peak_memory_usage'],
-				'cpu_load'          => $data['cpu_load']
+				'cpu_load'          => $data['cpu_load'],
+				'post_arguments'    => isset($data['post_arguments']) ? $data['post_arguments'] : null,
 			),
 			array(
 				'%s', // URL
@@ -573,7 +653,8 @@ class Wpoven_Performance_Logs_Admin
 				'%s', // Queries (JSON string)
 				'%d', // Memory usage
 				'%d', // Peak memory usage
-				'%s'  // CPU load
+				'%s',  // CPU load
+				'%s'  // Post arguments
 			)
 		);
 	}
@@ -602,6 +683,7 @@ class Wpoven_Performance_Logs_Admin
 			memory_usage bigint(20) DEFAULT NULL,
             peak_memory_usage bigint(20) DEFAULT NULL,
             cpu_load varchar(10) DEFAULT NULL,
+			post_arguments longtext DEFAULT NULL,
             PRIMARY KEY (id)
         ) $charset_collate;";
 
@@ -657,6 +739,17 @@ class Wpoven_Performance_Logs_Admin
 
 		);
 
+		$query_slow_threshold = array(
+			'id'       => 'query_slow_threshold',
+			'type'     => 'text',
+			'title'    => esc_html__('Log only when request exceeds', 'wpoven-performance-logs'),
+			'desc'     => 'Enter a value in <strong>second(s)</strong>.',
+			'validate' => 'numeric',
+			'placeholder' => 'Ex : 0.2 second',
+		);
+
+
+
 		$delete_logs = array(
 			'id'       => 'delete-logs',
 			'type'     => 'select',
@@ -688,6 +781,7 @@ class Wpoven_Performance_Logs_Admin
 
 		$fields[] = $log_retention;
 		$fields[] = $query_retention;
+		$fields[] = $query_slow_threshold;
 		$fields[] = $delete_logs;
 		$fields[] = $purge_all_logs;
 		$fields[] = $filter_request;
@@ -740,10 +834,6 @@ class Wpoven_Performance_Logs_Admin
 		if (!class_exists('Redux')) {
 			return;
 		}
-
-		// while (true) {
-		// //Endless loop
-		// }
 
 		$options = get_option(WPOVEN_PERFORMANCE_LOGS_SLUG);
 		$opt_name = WPOVEN_PERFORMANCE_LOGS_SLUG;
@@ -810,12 +900,16 @@ class Wpoven_Performance_Logs_Admin
 		Redux::set_section(
 			$opt_name,
 			array(
-				'title'      => '<a href="admin.php?page=view-performance-logs"  class="view-performance-logs"> <span class="group_title">View Logs</span></a>',
+				'title'      => '<a href="admin.php?page=view-performance-logs" class="view-performance-logs">
+                            <span class="dashicons dashicons-media-text" style="margin-right:6px;"></span>
+                           <strong> <span class="group_title">View Logs</span></strong>
+                        </a>',
 				'id'         => 'performance-logs',
 				'class'      => 'performance-logs',
 				'parent'     => 'performance-logs-settings',
-				'subsection' => true,
+				'subsection' => false,
 				'icon'       => '', //el el-list
+
 			)
 		);
 	}

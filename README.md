@@ -1,9 +1,11 @@
 # WPOven Performance Logs
 
+![PHP Check Status](https://github.com/baseapp/wpoven_perflogs/actions/workflows/action.yml/badge.svg)
+
 **Contributors:** [WPOven](https://www.wpoven.com/)  
-**Requires at least:** 6.6.2  
-**Tested up to:** 6.6.2  
-**Stable tag:** 1.0.0  
+**Requires at least:** 6.2  
+**Tested up to:** 6.9  
+**Stable tag:** 1.0.1  
 **License:** GPLv2 or later  
 **License URI:** [http://www.gnu.org/licenses/gpl-2.0.html](http://www.gnu.org/licenses/gpl-2.0.html)  
 
@@ -73,9 +75,17 @@ Yes, you can delete all Performance logs.
 
 ## Changelog
 
+### 1.0.1
+- Added conditional logging to record entries only when a request exceeds configured limits.
+- Added display of POST request arguments in the log viewer for easier debugging.
+
 ### 1.0.0
 - Initial release with PHP execution time tracking, database query analysis, system resource monitoring, and IP address tracking for optimized performance and security.
 
 ## Upgrade Notice
+
+### 1.0.1 
+- Added conditional logging to record entries only when request limits are exceeded, reducing database usage. Also adds visibility of POST request arguments in the log viewer for improved debugging.
+
 ### 1.0.0 
 - Initial release with PHP execution time tracking, database query analysis, system resource monitoring, and IP address tracking for improved performance and security.
