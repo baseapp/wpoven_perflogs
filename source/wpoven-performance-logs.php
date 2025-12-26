@@ -81,6 +81,7 @@ function wpoven_performance_logs_activate()
 	require_once plugin_dir_path(__FILE__) . 'includes/class-wpoven-performance-logs-activator.php';
 	Wpoven_Performance_Logs_Activator::activate();
 
+	require_once plugin_dir_path(__FILE__) . 'includes/admin/class-wpoven-performance-logs-admin.php';
 	$wpoven_performance_logs = new Wpoven_Performance_Logs_Admin('wpoven-performance-logs', '1.0.1');
 	$wpoven_performance_logs->create_database_table();
 	update_option('wpoven_log_current_date', gmdate('Y-m-d'));
