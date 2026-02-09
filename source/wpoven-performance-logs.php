@@ -30,6 +30,10 @@ if (! defined('WPINC')) {
 	die;
 }
 
+if (! defined('ABSPATH')) {
+	exit;
+}
+
 if (! defined('SAVEQUERIES')) {
 	define('SAVEQUERIES', true);
 }
