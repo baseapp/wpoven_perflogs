@@ -1,4 +1,7 @@
 <?php
+if (! defined('ABSPATH')) {
+	exit;
+}
 
 /**
  * The file that defines the core plugin class

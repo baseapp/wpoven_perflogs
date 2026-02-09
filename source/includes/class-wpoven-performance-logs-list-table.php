@@ -1,5 +1,8 @@
 <?php
 
+if (! defined('ABSPATH')) {
+    exit;
+}
 //namespace WPOVEN\LIST\TABLE;
 
 //use WP_List_Table;
