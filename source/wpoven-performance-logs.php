@@ -16,7 +16,7 @@
  * Plugin Name:       WPOven Performance Logs
  * Plugin URI:        https://github.com/shyambaseapp/wpoven-performance-logs
  * Description:       WPOven Performance Logs monitoring page generation, memory, database queries, and API calls
- * Version:           1.0.1
+ * Version:           1.0.2
  * Author:            WPOven
  * Author URI:        https://www.wpoven.com/
  * License:           GPL-2.0+
@@ -46,7 +46,9 @@ if (SAVEQUERIES && property_exists($GLOBALS['wpdb'], 'save_queries')) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define('WPOVEN_PERFORMANCE_LOGS_VERSION', '1.0.1');
+define('WPOVEN_PERFORMANCE_LOGS_VERSION', '1.0.2');
+define('WPOVEN_PERFORMANCE_LOGS_DB_VERSION', '1.0.2');
+
 if (!defined('WPOVEN_PERFORMANCE_LOGS_SLUG'))
 	define('WPOVEN_PERFORMANCE_LOGS_SLUG', 'wpoven-performance-logs');
 
@@ -82,9 +84,10 @@ function wpoven_performance_logs_activate()
 	Wpoven_Performance_Logs_Activator::activate();
 
 	require_once plugin_dir_path(__FILE__) . 'admin/class-wpoven-performance-logs-admin.php';
-	$wpoven_performance_logs = new Wpoven_Performance_Logs_Admin('wpoven-performance-logs', '1.0.1');
+	$wpoven_performance_logs = new Wpoven_Performance_Logs_Admin('wpoven-performance-logs', WPOVEN_PERFORMANCE_LOGS_VERSION);
 	$wpoven_performance_logs->create_database_table();
 	update_option('wpoven_log_current_date', gmdate('Y-m-d'));
+	update_option('wpoven_performance_logs_db_version', WPOVEN_PERFORMANCE_LOGS_DB_VERSION);
 }
 
 /**
@@ -123,6 +126,26 @@ require plugin_dir_path(__FILE__) . 'includes/class-wpoven-performance-logs.php'
 add_action('plugins_loaded', function () {
 	$plugin = new Wpoven_Performance_Logs();
 	$plugin->run();
+
+	$installed_db_version = get_option('wpoven_performance_logs_db_version');
+
+	if ($installed_db_version !== WPOVEN_PERFORMANCE_LOGS_DB_VERSION) {
+
+		require_once plugin_dir_path(__FILE__) . 'admin/class-wpoven-performance-logs-admin.php';
+
+		$wpoven_performance_logs = new Wpoven_Performance_Logs_Admin(
+			'wpoven-performance-logs',
+			WPOVEN_PERFORMANCE_LOGS_VERSION
+		);
+
+		// dbDelta will ADD missing columns safely
+		$wpoven_performance_logs->create_database_table();
+
+		update_option(
+			'wpoven_performance_logs_db_version',
+			WPOVEN_PERFORMANCE_LOGS_DB_VERSION
+		);
+	}
 });
 
 function wpoven_performance_logs_plugin_settings_link($links)

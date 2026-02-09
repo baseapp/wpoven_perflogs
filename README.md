@@ -5,7 +5,7 @@
 **Contributors:** [WPOven](https://www.wpoven.com/)  
 **Requires at least:** 6.2  
 **Tested up to:** 6.9  
-**Stable tag:** 1.0.1  
+**Stable tag:** 1.0.2  
 **License:** GPLv2 or later  
 **License URI:** [http://www.gnu.org/licenses/gpl-2.0.html](http://www.gnu.org/licenses/gpl-2.0.html)  
 
@@ -74,6 +74,11 @@ Perfect for developers, site owners, and agencies who need deep insights into Wo
 Yes, you can delete all Performance logs.
 
 ## Changelog
+
+### 1.0.2
+- Fixed database error caused by missing `post_arguments` column in `wp_performance_logs` table.
+- Improved database schema validation before inserting performance log data.
+- Prevented fatal errors during performance logging on production sites.
 
 ### 1.0.1
 - Added conditional logging to record entries only when a request exceeds configured limits.
